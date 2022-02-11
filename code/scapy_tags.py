@@ -128,14 +128,127 @@ TAG_AUTH_MESH_PEERING_EXCH  = 139
 TAG_MIC                     = 140
 TAG_DESTINATION_URI         = 141
 TAG_U_APSD_COEX             = 142
+
+# 802.11 2020 - Page 943
+TAG_DMG_WAKEUP_SCHEDULE     = 143
+TAG_EXTENDED_SCHEDULE       = 144
+TAG_STA_AVAILABILITY        = 145
+TAG_DMG_TSPEC               = 146
+TAG_DMG_ATTRIBUTE           = 147
+TAG_DMG_CAPABILITIES        = 148
+# end 802.11 2020
+
 TAG_CISCO_CCX3              = 149  # /* Cisco Compatible eXtensions v3 */
 TAG_CISCO_UNKNOWN_96        = 150  # /* Cisco Compatible eXtensions */
+
+# 802.11 2020 - Page 943
+TAG_DMG_OPERATION           = 151
+TAG_DMG_BSS_PARAM_CHANGE    = 152
+TAG_DMG_BEAM_REFINEMENT     = 153
+TAG_CHANNEL_MEASUREMENT_FEEDBACK = 154
+
+TAG_AWAKE_WINDOW            = 157
+TAG_MULTI_BAND              = 158
+TAG_ADDBA_EXT               = 159
+TAG_NEXT_PCP_LIST           = 160
+TAG_PCP_HANDOVER            = 161
+TAG_DMG_LINK_MARGIN         = 162
+TAG_SWITCHING_STREAM        = 163
+TAG_SESSION_TRANSITION      = 164
+
+TAG_CLUSTER_REPORT          = 166
+TAG_RELAY_CAPABILITY        = 167
+TAG_RELAY_TRANSFER_PARAM    = 168
+TAG_BEAM_LINK_MAINT         = 169
+TAG_MULTIPLE_MAC_SUBLAYERS  = 170
+TAG_U_PID                   = 171
+TAG_DMG_LINK_ADAPTATION_ACK = 172
+# end 802.11 2020
+
 TAG_SYMBOL_PROPRIETARY      = 173
 TAG_MCCAOP_ADVERTISSEMENT_OV= 174
+
+# 802.11 2020 - Page 945
+TAG_QUIET_PERIOD_REQ        = 175
+
+TAG_QUIET_PERIOD_RESP       = 177
+
+TAG_QMF_POLICY              = 181
+TAG_ECAPC_POLICY            = 182
+TAG_CLUSTER_TIME_OFFSET     = 183
+TAG_INTRA_ACCESS_CATEGORY_PRIORITY = 184
+TAG_SCS_DESCRIPTOR          = 185
+TAG_QLOAD_REPORT            = 186
+TAG_HCCA_TXOP_UPDATE_COUNT  = 187
+TAG_HIGHER_LAYER_STREAM_ID  = 188
+TAG_GCR_GROUP_ADDRESS       = 189
+TAG_ANTENNA_SECTOR_ID_PATTERN = 190
+# end 802.11 2020
+
 TAG_VHT_CAPABILITY          = 191  # /* IEEE Std 802.11ac/D3.1 */
 TAG_VHT_OPERATION           = 192  # /* IEEE Std 802.11ac/D3.1 */
+
+# 802.11 2020 - Page 945
+TAG_EXTENDED_BSS_LOAD       = 193
+TAG_WIDE_BW_CHANNEL_SWITCH  = 194
+# end 802.11 2020
+
 TAG_VHT_TX_PWR_ENVELOPE     = 195  # /* IEEE Std 802.11ac/D5.0 */
+
+# 802.11 2020 - Page 945
+TAG_CHANNEL_SWITCH_WRAPPER  = 196
+TAG_AID                     = 197
+TAG_QUIET_CHANNEL           = 198
+TAG_OPERATING_MODE_NOTIFICATION = 199
+TAG_UPSIM                   = 200
+TAG_REDUCED_NEIGHBOR_REPORT = 201
+TAG_TVHT_OPERATION          = 202
+
+TAG_DEVICE_LOCATION         = 204
+TAG_WHITE_SPACE_MAP         = 205
+TAG_FINE_TIMING_MEASUREMENT_PARAMETERS = 206
+TAG_S1G_OPEN_LOOP_LINK_MARGIN_INDEX = 207
+TAG_RPS                     = 208
+TAG_PAGE_SLICE              = 209
+TAG_AID_REQUEST             = 210
+TAG_AID_RESPONSE            = 211
+TAG_S1G_SECTOR_OPERATION    = 212
+TAG_S1G_BEACON_COMPATIBILITY = 213
+TAG_SHORT_BEACON_INTERVAL   = 214
+TAG_CHANGE_SEQUENCE         = 215
+TAG_TWT                     = 216
+TAG_S1G_CAPABILITIES        = 217
+
+TAG_SUBCHANNEL_SELECTIVE_TRANSMISSION = 220
+# end 802.11 2020
+
 TAG_VENDOR_SPECIFIC_IE      = 221
+
+# 802.11 2020 - Page 946
+TAG_AUTHENTICATION_CONTROL      = 222
+TAG_TSF_TIMER_ACCURACY          = 223
+TAG_S1G_RELAY                   = 224
+TAG_REACHABLE_ADDRESS           = 225
+TAG_S1G_RELAY_DISCOVERY         = 226
+
+TAG_AID_ANNOUNCEMENT            = 228
+TAG_PV1_PROBE_RESPONSE_OPTION   = 229
+TAG_EL_OPERATION                = 230
+TAG_SECTORIZED_GROUP_ID_LIST    = 231
+TAG_S1G_OPERATION               = 232
+TAG_HEADER_COMPRESSION          = 233
+TAG_SST_OPERATION               = 234
+TAG_MAD                         = 235
+TAG_S1G_RELAY_ACTIVATION        = 236
+TAG_CAG_NUMBER                  = 237
+
+TAG_AP_CSN                      = 239
+TAG_FILS_INDICATION             = 240
+TAG_DILS                        = 241
+TAG_FRAGMENT                    = 242
+
+TAG_RSN_EXTENSION               = 244
+# end 802.11 2020
 
 elt_id_map = {
    TAG_SSID:                                 "SSID parameter set" ,
@@ -260,21 +373,224 @@ elt_id_map = {
    TAG_MIC:                                  "MIC (Message Integrity Code)" ,
    TAG_DESTINATION_URI:                      "Destination URI" ,
    TAG_U_APSD_COEX:                          "U-APSD Coexistence" ,
+        TAG_DMG_WAKEUP_SCHEDULE: "DMG_WAKEUP_SCHEDULE", 
+        TAG_EXTENDED_SCHEDULE: "EXTENDED_SCHEDULE", 
+        TAG_STA_AVAILABILITY: "STA_AVAILABILITY", 
+        TAG_DMG_TSPEC: "DMG_TSPEC", 
+        TAG_DMG_ATTRIBUTE: "DMG_ATTRIBUTE", 
+        TAG_DMG_CAPABILITIES: "DMG_CAPABILITIES", 
    TAG_CISCO_CCX3:                           "Cisco Unknown 95" ,
    TAG_CISCO_UNKNOWN_96:                     "Cisco Unknown 96" ,
+   
+    TAG_DMG_OPERATION: "DMG_OPERATION", 
+    TAG_DMG_BSS_PARAM_CHANGE: "DMG_BSS_PARAM_CHANGE", 
+    TAG_DMG_BEAM_REFINEMENT: "DMG_BEAM_REFINEMENT", 
+    TAG_CHANNEL_MEASUREMENT_FEEDBACK: "CHANNEL_MEASUREMENT_FEEDBACK", 
+    TAG_AWAKE_WINDOW: "AWAKE_WINDOW", 
+    TAG_MULTI_BAND: "MULTI_BAND", 
+    TAG_ADDBA_EXT: "ADDBA_EXT", 
+    TAG_NEXT_PCP_LIST: "NEXT_PCP_LIST", 
+    TAG_PCP_HANDOVER: "PCP_HANDOVER", 
+    TAG_DMG_LINK_MARGIN: "DMG_LINK_MARGIN", 
+    TAG_SWITCHING_STREAM: "SWITCHING_STREAM", 
+    TAG_SESSION_TRANSITION: "SESSION_TRANSITION", 
+    TAG_CLUSTER_REPORT: "CLUSTER_REPORT", 
+    TAG_RELAY_CAPABILITY: "RELAY_CAPABILITY", 
+    TAG_RELAY_TRANSFER_PARAM: "RELAY_TRANSFER_PARAM", 
+    TAG_BEAM_LINK_MAINT: "BEAM_LINK_MAINT", 
+    TAG_MULTIPLE_MAC_SUBLAYERS: "MULTIPLE_MAC_SUBLAYERS", 
+    TAG_U_PID: "U_PID", 
+    TAG_DMG_LINK_ADAPTATION_ACK: "DMG_LINK_ADAPTATION_ACK", 
+
    TAG_SYMBOL_PROPRIETARY:                   "Symbol Proprietary" ,
    TAG_MCCAOP_ADVERTISSEMENT_OV:             "MCCAOP Advertisement Overview" ,
+   
+        TAG_QUIET_PERIOD_REQ: "QUIET_PERIOD_REQ", 
+        TAG_QUIET_PERIOD_RESP: "QUIET_PERIOD_RESP", 
+        TAG_QMF_POLICY: "QMF_POLICY", 
+        TAG_ECAPC_POLICY: "ECAPC_POLICY", 
+        TAG_CLUSTER_TIME_OFFSET: "CLUSTER_TIME_OFFSET", 
+        TAG_INTRA_ACCESS_CATEGORY_PRIORITY: "INTRA_ACCESS_CATEGORY_PRIORITY", 
+        TAG_SCS_DESCRIPTOR: "SCS_DESCRIPTOR", 
+        TAG_QLOAD_REPORT: "QLOAD_REPORT", 
+        TAG_HCCA_TXOP_UPDATE_COUNT: "HCCA_TXOP_UPDATE_COUNT", 
+        TAG_HIGHER_LAYER_STREAM_ID: "HIGHER_LAYER_STREAM_ID", 
+        TAG_GCR_GROUP_ADDRESS: "GCR_GROUP_ADDRESS", 
+        TAG_ANTENNA_SECTOR_ID_PATTERN: "ANTENNA_SECTOR_ID_PATTERN", 
+
    TAG_VHT_CAPABILITY:                       "VHT Capabilities" ,
    TAG_VHT_OPERATION:                        "VHT Operation" ,
+   
+        TAG_EXTENDED_BSS_LOAD: "EXTENDED_BSS_LOAD", 
+        TAG_WIDE_BW_CHANNEL_SWITCH: "WIDE_BW_CHANNEL_SWITCH",   
+   
    TAG_VHT_TX_PWR_ENVELOPE:                  "VHT Tx Power Envelope" ,
+   
+        TAG_CHANNEL_SWITCH_WRAPPER: "CHANNEL_SWITCH_WRAPPER", 
+        TAG_AID: "AID", 
+        TAG_QUIET_CHANNEL: "QUIET_CHANNEL", 
+        TAG_OPERATING_MODE_NOTIFICATION: "OPERATING_MODE_NOTIFICATION", 
+        TAG_UPSIM: "UPSIM", 
+        TAG_REDUCED_NEIGHBOR_REPORT: "REDUCED_NEIGHBOR_REPORT", 
+        TAG_TVHT_OPERATION: "TVHT_OPERATION", 
+        TAG_DEVICE_LOCATION: "DEVICE_LOCATION", 
+        TAG_WHITE_SPACE_MAP: "WHITE_SPACE_MAP", 
+        TAG_FINE_TIMING_MEASUREMENT_PARAMETERS: "FINE_TIMING_MEASUREMENT_PARAMETERS", 
+        TAG_S1G_OPEN_LOOP_LINK_MARGIN_INDEX: "S1G_OPEN_LOOP_LINK_MARGIN_INDEX", 
+        TAG_RPS: "RPS", 
+        TAG_PAGE_SLICE: "PAGE_SLICE", 
+        TAG_AID_REQUEST: "AID_REQUEST", 
+        TAG_AID_RESPONSE: "AID_RESPONSE", 
+        TAG_S1G_SECTOR_OPERATION: "S1G_SECTOR_OPERATION", 
+        TAG_S1G_BEACON_COMPATIBILITY: "S1G_BEACON_COMPATIBILITY", 
+        TAG_SHORT_BEACON_INTERVAL: "SHORT_BEACON_INTERVAL", 
+        TAG_CHANGE_SEQUENCE: "CHANGE_SEQUENCE", 
+        TAG_TWT: "TWT", 
+        TAG_S1G_CAPABILITIES: "S1G_CAPABILITIES", 
+        TAG_SUBCHANNEL_SELECTIVE_TRANSMISSION: "SUBCHANNEL_SELECTIVE_TRANSMISSION", 
+   
    TAG_VENDOR_SPECIFIC_IE:                   "Vendor Specific" ,
+
+        TAG_AUTHENTICATION_CONTROL: "AUTHENTICATION_CONTROL",
+        TAG_TSF_TIMER_ACCURACY: "TSF_TIMER_ACCURACY",
+        TAG_S1G_RELAY: "S1G_RELAY",
+        TAG_REACHABLE_ADDRESS: "REACHABLE_ADDRESS",
+        TAG_S1G_RELAY_DISCOVERY: "S1G_RELAY_DISCOVERY",
+        TAG_AID_ANNOUNCEMENT: "AID_ANNOUNCEMENT",
+        TAG_PV1_PROBE_RESPONSE_OPTION: "PV1_PROBE_RESPONSE_OPTION",
+        TAG_EL_OPERATION: "EL_OPERATION",
+        TAG_SECTORIZED_GROUP_ID_LIST: "SECTORIZED_GROUP_ID_LIST",
+        TAG_S1G_OPERATION: "S1G_OPERATION",
+        TAG_HEADER_COMPRESSION: "HEADER_COMPRESSION",
+        TAG_SST_OPERATION: "SST_OPERATION",
+        TAG_MAD: "MAD",
+        TAG_S1G_RELAY_ACTIVATION: "S1G_RELAY_ACTIVATION",
+        TAG_CAG_NUMBER: "CAG_NUMBER",
+        TAG_AP_CSN: "AP_CSN",
+        TAG_FILS_INDICATION: "FILS_INDICATION",
+        TAG_DILS: "DILS",
+        TAG_FRAGMENT: "FRAGMENT",
+        TAG_RSN_EXTENSION: "RSN_EXTENSION"
+}
+
+# 802.11 2020 page: 946 Table: 9-92 
+elt_id_ext_map = {
+    0: "Reserved",
+    1: "Association Delay Info",
+    2: "FILS Request Parameters",
+    3: "FILS Key Confirmation",
+    4: "FILS Session",
+    5: "FILS HLP Container",
+    6: "FILS IP Address Assignment",
+    7: "Key Delivery",
+    8: "FILS Wrapped Data",
+    9: "FTM Synchronization Information",
+    10: "Extended Request",
+    11: "Estimated Service Parameters Inbound",
+    12: "FILS Public Key",
+    13: "FILS Nonce",
+    14: "Future Channel Guidance",
+    15: "Service Hint",
+    16: "Service Hash",
+    17: "CDMG Capabilities",
+    18: "Dynamic Bandwidth Control",
+    19: "CDMG Extended Schedule",
+    20: "SSW Report",
+    21: "Cluster Probe",
+    22: "Extended Cluster Report",
+    23: "Cluster Switch Announcement",
+    24: "Enhanced Beam Tracking",
+    25: "SPSH Report",
+    26: "Clustering Interference Assessment",
+    27: "CMMG Capabilities",
+    28: "CMMG Operation",
+    29: "CMMG Operating Mode Notification",
+    30: "CMMG Link Margin",
+    31: "CMMG Link Adaptation Acknowledgment",
+    32: "Reserved",
+    33: "Password identifier",
+    34: "GLK-GCR Parameter Set",
+        # From the 802.11ax-2021 Table 9-92
+        35: "HE Capabilities",
+        36: "HE Operation",
+        37: "UORA Parameter Set element",
+        38: "MU EDCA Parameter Set",
+        39: "Spatial Reuse Parameter Set element",
+        # end of 802.11ax-2021
+    40: "GAS Extension",
+        # From the 802.11ax-2021 Table 9-92
+        41: "NDP Feedback Report Parameter Set element",
+        42: "BSS Color Change Announcement",
+        43: "Quiet Time Period",
+        # end of 802.11ax-2021
+    44: "Vendor Specific Request Element",
+        # From the 802.11ax-2021 Table 9-92
+        45: "ESS Report",
+        46: "OPS",
+        47: "HE BSS Load",
+        # end of 802.11ax-2021
+    48: "Reserved",
+    49: "Reserved",
+    50: "Reserved",
+    51: "Reserved",
+    52: "Max Channel Switch Time",
+    53: "Estimated Service Parameters Outbound",
+    54: "Operating Channel Information (OCI) Element",
+        # From the 802.11ax-2021 Table 9-92
+        55: "Multiple BSSID Configuration",
+        # end of 802.11ax-2021
+    56: "Non-Inheritance",
+        # From the 802.11ax-2021 Table 9-92
+        57: "Known BSSID",
+        58: "Short SSID List",
+        59: "HE 6 GHz Band Capabilities",
+        60: "UL MU Power Capabilities",
+        # end of 802.11ax-2021
+    61: "Reserved",
+    62: "Reserved",
+    63: "Reserved",
+    64: "Reserved",
+    65: "Reserved",
+    66: "Reserved",
+    67: "Reserved",
+    68: "Reserved",
+    69: "Reserved",
+    70: "Reserved",
+    71: "Reserved",
+    72: "Reserved",
+    73: "Reserved",
+    74: "Reserved",
+    75: "Reserved",
+    76: "Reserved",
+    77: "Reserved",
+    78: "Reserved",
+    79: "Reserved",
+    80: "Reserved",
+    81: "Reserved",
+    82: "Reserved",
+    83: "Reserved",
+    84: "Reserved",
+    85: "Reserved",
+    86: "Reserved",
+    87: "Reserved",
+    88: "MSCS Descriptor element",
+    89: "TCLAS Mask",
+    90: "Supplemental Class 2 Capabilities",
+    91: "OCT Source",
+    92: "Rejected Groups",
+    93: "Anti-Clogging Token Container",
+    94: "Reserved" # 94-255 Reserved
 }
 
 def human_readable_elt(elt_id):
     # Human readable elt_id?
     name = "Nonexistent"
     try:
-        name = elt_id_map[elt_id]
+        if(elt_id < 255):
+            name = elt_id_map[elt_id]
+        # If it is an extended elt_id, we extract it's extended id
+        elif(elt_id // 256 == 255):
+            name = "EXT: " + elt_id_ext_map[elt_id % 256]
     except KeyError as e:
         pass
 

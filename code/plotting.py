@@ -8,12 +8,12 @@ import matplotlib.pyplot as plt
 import os
 from scapy_tags import *
 
+TAG_ENTIRE_FRAME = 252 # It had the ID 255 (an ex-reserved ID), but we now ananlyse that ID as well
 TAG_CAPA_ORDER = 253  # Custom element
 TAG_MAC_FRAME = 254
-TAG_ENTIRE_FRAME = 255
 
 def make_stats(labels, matrix, name, output="latex/elt_entropy_table"):
-    output += "_" + name
+    output += "_" + name + ".txt"
     with open(output, 'w') as outputfile:
         for i in range(0, len(labels)):
             outputfile.write("%s & %.3f\\\\\n" % (labels[i], sum(matrix[i])))
@@ -35,16 +35,26 @@ def make_heatmap(dictionary, range_x=None, inverted=True, show=True, name='heatm
     # Extract kv pairs while keeping order
     labels = []
     matrix = []
+    info_order = None
+    info_order_set = False
     for key in sorted(dictionary.keys()):
         if key == TAG_ENTIRE_FRAME:
             labels.append("Entire frame")
         elif key == TAG_MAC_FRAME:
             labels.append("MAC header")
         elif key == TAG_CAPA_ORDER:
-            labels.append("Information element order")
+            info_order = dictionary[key]
+            info_order_set = True
+            continue
+            #labels.append("Information element order")
         else:
             labels.append(human_readable_elt(key))
         matrix.append(dictionary[key])
+    
+    # Add Information Order as the last element
+    if(info_order_set):
+        labels.append("Information element order")
+        matrix.append(info_order)
 
     # Make a LaTeX table of the heatmap as well
     make_stats(labels, matrix, name)
@@ -72,6 +82,8 @@ def make_heatmap(dictionary, range_x=None, inverted=True, show=True, name='heatm
     plt.colorbar(fig, orientation='vertical', pad=0.01)
     fig.set_clim(0.0, 1.0)
     plt.savefig(name, bbox_inches='tight', dpi=(300), format='pdf')
+    plt.savefig(name+".png", bbox_inches='tight', dpi=(500), format='png')
+
     if show:
         plt.show()
 

@@ -5,7 +5,7 @@
 
 from pymongo import ASCENDING, DESCENDING, MongoClient
 from bson.binary import Binary
-from scapy.all import Raw, RadioTap, Dot11
+from scapy.all import Raw, RadioTap, Dot11, rdpcap
 from scapy.fields import *
 from scapy_tags import *
 from scapy.layers.dot11 import Dot11Elt, Dot11ProbeReq
@@ -35,7 +35,7 @@ import argparse
 # Glimps 2015 data: mac_info
 arg_parser = argparse.ArgumentParser(description="Advanced MAC layer fingerprinter for Probe Request frames", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 arg_parser.add_argument('type', choices=['mongodb', 'file', 'pcap'])
-arg_parser.add_argument('name', help='The path to / name of the dataset containing Probe Requests', choices=['mac_info','mac_research'])
+arg_parser.add_argument('name', help='The path to the PCAP file containing Probe Requests')
 arg_parser.add_argument('--host', dest='host', help='MongoDB host', default='localhost')
 arg_parser.add_argument('--debug', '-d', dest='debug', help='Debug mode', action='store_true')
 arg_parser.add_argument('--big-endian', dest='be', help='Big Endian Radiotap header', action='store_true')
@@ -48,6 +48,11 @@ if args.name == "mac_info":
     USE_RESEARCH_DATA = False
 else:
     USE_RESEARCH_DATA = True
+
+if args.type == "pcap":
+    FILE_IS_PCAP = True
+else:
+    FILE_IS_PCAP = False
 
 NUM_SAMPLES = args.num_train_samples
 NUM_SAMPLES_TEST = args.num_test_samples # Number of MACs to fingerprint
@@ -71,6 +76,12 @@ TOPHASH_APPROACH = False
 VIS_XRANGE = [0, 255]
 #VIS_XRANGE = [0, 500]
 UNSTABLE_ELT_IDS = []
+
+# This are the custom tags for our custom IEs
+# It uses reserverd IE codes. Original used 255 as entire frame, but that one is not reserved anymore.
+TAG_ENTIRE_FRAME = b'\xfc'
+TAG_CAPA_ORDER = b'\xfd'  # Custom element
+TAG_MAC_FRAME = b'\xfe'
 
 debug = False
 last_time = 0
@@ -388,7 +399,8 @@ class FingerprintCollection():
 
     def apply(self, control=False):
         suffix = "_nr" if control else ""
-        db_fps = db.wt_taudb_remote['fingerprints_' + args.name + suffix]
+        if(not FILE_IS_PCAP): # Bypass the DB if we are using a pcap file
+            db_fps = db.wt_taudb_remote['fingerprints_' + args.name + suffix]
 
         print("\nReversing dictionary...")
         v = defaultdict(lambda: [])
@@ -398,7 +410,8 @@ class FingerprintCollection():
                 v[fp_str].append(key)
 
         print("Applying fingerprints...")
-        db.wt_taudb_remote['fingerprints_' + args.name + suffix].remove({})
+        if(not FILE_IS_PCAP): # Bypass the DB if we are using a pcap file
+            db.wt_taudb_remote['fingerprints_' + args.name + suffix].remove({})
         done = 0
         total = len(self.fps)
         for fp in v:
@@ -425,18 +438,26 @@ def mac_and_oui(mac):
 
 class MongoHandler():
     def __init__(self, start_id, end_id):
-        self.mongo_client_remote = MongoClient(args.host)
+        if(not FILE_IS_PCAP): # Bypass the DB if we are using a pcap file
+            self.mongo_client_remote = MongoClient(args.host)
         self.start_id = start_id
         self.end_id = end_id
 
         # Select db
-        if USE_RESEARCH_DATA:
-            print("Using research center data")
-        self.wt_taudb_remote = self.mongo_client_remote.anonymized
+        if(not FILE_IS_PCAP): # Bypass the DB if we are using a pcap file
+            if USE_RESEARCH_DATA:
+                print("Using research center data")
+                self.wt_taudb_remote = self.mongo_client_remote.anonymized
 
     def get_data(self):
         if args.type == 'file':
             return FileParser(args.name).parse()
+        elif(FILE_IS_PCAP):
+            # Add "count()" function to our PCAP file
+            def count(self):
+                return len(self)
+            setattr(scapy.plist.PacketList, 'count', count)
+            return rdpcap(args.name)
         else:
             if USE_RESEARCH_DATA:
                 return self.wt_taudb_remote[args.name].find({"_id": {"$gte": self.start_id, "$lte": self.end_id}})
@@ -541,10 +562,20 @@ class Dataset():
         macs_seen = set()
 
         for element in mongocursor:
-            # Get data from Mongo
-            bin_data = element['info']
-            mac_addr = element['mac_addr']
-            ts = element['_id'].generation_time
+            if (FILE_IS_PCAP):
+                bin_data = element
+                mac_addr = element.addr2
+                if(element.time!=None):
+                    ts = datetime.datetime.fromtimestamp(element.time)
+                else:
+                    ts = datetime.datetime.now()
+            else:
+                # Get data from MongoDB
+                bin_data = element['info']
+                mac_addr = element['mac_addr']
+                ts = element['_id'].generation_time
+            if (mac_addr == None):
+                continue
             macs_seen.add(mac_addr)
 
             if skip_local and is_locally_administered_mac(mac_addr):
@@ -574,7 +605,7 @@ class Dataset():
                     elt = str(elt)
                 else:
                     elt = Dot11Elt(bin_data)
-                elt_id = b'\xff'  # Special elt id indicating whole frame
+                elt_id = TAG_ENTIRE_FRAME  # Special elt id indicating whole frame
                 raw_ie_bytes = elt_id + str(elt)
                 r.add_field(elt_id, raw_ie_bytes)
                 self.max_rows_per_elt[elt_id] += 1
@@ -598,6 +629,15 @@ class Dataset():
 
         if raw_bytes_len > 0:
             field_id = raw_bytes[0]
+            # If the elementID is 255, we save it together with it's extension tag
+            # This means that field ID can now be a number much higher than 255
+            # Be carefull with this! 
+            # Explanation: When ID=255 (0xFF), the ID has an extension ID following it
+            # We append that extension ID to the ID. Example:
+            # ID=255(0xFF), extension ID=1(0x01) -> field_id=0xFF01
+            # Note: ID -> 1rst byte, extension ID -> 3rd byte
+            if(ord(field_id) == 255):
+                field_id = unichr((ord(raw_bytes[0])*256) + ord(raw_bytes[2]))
 
             # Add element to our record
             r.add_field(field_id, raw_bytes)
@@ -610,7 +650,9 @@ class Dataset():
             exit()
 
     def dissect_frame(self, frame, r):
-        if frame[4:6] == "\x2f\x40":
+        # TODO: I think this change droped the support of MAC Header analysis for the PCAP files
+        #       It may be good to reimpement this in the future
+        if (not FILE_IS_PCAP and frame[4:6] == "\x2f\x40"):
             if args.be:
                 # Reverse endianess for sensor provided radiotap header (which is Big Endian)
                 frame = frame[0:2] + frame[3] + frame[2] + frame[4:-4]
@@ -623,13 +665,16 @@ class Dataset():
             frame[Dot11].addr2 = '\x00\x00\x00\x00\x00\x00'
             frame[Dot11].addr3 = '\x00\x00\x00\x00\x00\x00'
         else:
-            frame = Dot11Elt(frame)
+            if FILE_IS_PCAP and (frame.type!=0 or frame.subtype!=4):
+                return True
+            if not FILE_IS_PCAP:
+                frame = Dot11Elt(frame)
 
         # Copy of full frame for debugging
         #ff = frame.copy()
 
         # An array containing the order of information elements for this frame
-        elt_order_bytes = b"\xfd"
+        elt_order_bytes = TAG_CAPA_ORDER
 
         # Dissect layers with Scapy
         while type(frame) != scapy.packet.NoPayload:
@@ -639,9 +684,9 @@ class Dataset():
 
             if type(layer) is scapy.layers.dot11.Dot11 and INCLUDE_MHEADER:
                 # Artificially add field ID for MAC header
-                raw_bytes = "\xfe" + raw_bytes
+                raw_bytes = TAG_MAC_FRAME + raw_bytes
                 self.add_to_record(r, raw_bytes)
-            elif type(layer) is scapy.layers.dot11.Dot11Elt:
+            elif type(layer) is scapy.layers.dot11.Dot11Elt or issubclass(type(layer), scapy.layers.dot11.Dot11Elt):
                 elt_id = raw_bytes[0]
                 self.add_to_record(r, raw_bytes)
                 elt_order_bytes += elt_id
@@ -703,6 +748,10 @@ class EltBitFrequencyTable():
 
     def add_field(self, tag, field):
         field_num_bytes = len(field)
+        
+        # If the elementID is 255, we save it together with it's extension tag
+        if(ord(tag) == 255):
+            tag = unichr((ord(field[0])*256) + ord(field[2]))
 
         # Fill bits at correct locations
         for i in range(0, field_num_bytes):
@@ -740,7 +789,8 @@ class EltBitFrequencyTable():
 
     def visualize(self, inverted=False, show=GRAPHS, name='heatmap.pdf'):
         if self.probability_matrix != {}:
-            plotting.make_heatmap(self.probability_matrix, VIS_XRANGE, inverted=inverted, show=show, name=name)
+            # TODO: This is probably a breaking/non-backwards-compatible change (name). Change it to something better
+            plotting.make_heatmap(self.probability_matrix, VIS_XRANGE, inverted=inverted, show=show, name=args.name.split('/')[-1] + "-" + name)
 
     def analyze_elt_id_uniqueness(self, display=True):
         # Determine matrix columns
@@ -760,7 +810,7 @@ class EltBitFrequencyTable():
             # Human readable elt_id?
             name = human_readable_elt(ord(elt_id))
             if name == "Nonexistent":
-                if ord(elt_id) < 253 or ord(elt_id) == 254 or ord(elt_id) == 255:
+                if ord(elt_id) < 252: # Changed because we changed the custom IDs
                     print("Warning: non-existent elt_id " + str(ord(elt_id)))
                     continue
 
@@ -1077,7 +1127,7 @@ def do_experiment_2(dataset):
 
         #Test
         for f in r.fields: #Test
-            if f[0] == "\xfd": #Test
+            if ord(f[0]) == ord(TAG_CAPA_ORDER): #Test
                 orders_per_mac[r.mac_addr].append((f[1])) # Test
 
         done += 1
@@ -1123,7 +1173,7 @@ def do_experiment_2(dataset):
 # bits should be most suitable for use in a fingerprint
 def optimal_fingerprinting_bits(stab_prob, vari_prob, filtering_approach=FILTERING_APPROACH):
     result = {}
-    np.set_printoptions(threshold=np.nan)
+    np.set_printoptions(threshold=sys.maxsize) # NP never oficially supported np.nan as threeshold
 
     for key in vari_prob.probability_matrix:
         try:
@@ -1304,9 +1354,11 @@ def write_results(results, num_samples, testnum_samples, f):
 def generate_datasets(vnum_samples, snum_samples, testnum_samples):
     elements = db.get_data()
     dataset_v = Dataset(elements, num_samples=vnum_samples)
-    elements.rewind()
+    if not FILE_IS_PCAP: # No need to rewind the file~
+        elements.rewind()
     dataset_s = Dataset(elements, num_samples=snum_samples)
-    elements.rewind()
+    if not FILE_IS_PCAP:
+        elements.rewind()
     dataset_test = Dataset(elements, skip_local=False, num_samples=testnum_samples)
 
     return dataset_v, dataset_s, dataset_test
@@ -1477,12 +1529,17 @@ if __name__ == "__main__":
     if ONE_RUN:
         elements = db.get_data()
         dataset_v = Dataset(elements, num_samples=NUM_SAMPLES_VARIABILITY)
-        elements.rewind()
+
+        if not FILE_IS_PCAP:
+            elements.rewind()
         dataset_s = Dataset(elements, num_samples=NUM_SAMPLES_STABILITY)
-        elements.rewind()
+
+        if not FILE_IS_PCAP:
+            elements.rewind()
         dataset_test = Dataset(elements, skip_local=False, num_samples=NUM_SAMPLES_TEST)
+
         do_run(dataset_v, dataset_s, dataset_test)
-        merge_heatmap_tables(["latex/elt_entropy_table_variability.pdf", "latex/elt_entropy_table_stability.pdf"], "latex/elt_entropy_table")
+        merge_heatmap_tables(["latex/elt_entropy_table_" + args.name.split('/')[-1] + "-variability.pdf.txt", "latex/elt_entropy_table_" + args.name.split('/')[-1] + "-stability.pdf.txt"], "latex/elt_entropy_table_" + args.name.split('/')[-1] + ".pdf.txt")
     else:
         compare_runs_lambda()
 # -----------------------------------------------------------------
