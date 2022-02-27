@@ -1,5 +1,8 @@
 # Modified source from: "Non-cooperative 802.11 MAC layer fingerprinting and tracking of mobile devices"
-This repository contains a modified source code used in the paper entitled "Non-cooperative 802.11 MAC layer fingerprinting and tracking of mobile devices". Please cite the paper and / or datasets if you use them in your research.
+This repository contains a modified source code from the paper entitled "Non-cooperative 802.11 MAC layer fingerprinting and tracking of mobile devices". 
+Please cite that paper and / or datasets if you use them in your research.
+
+This modified version was used in my thesis **"Ist die Nutzung eines zentralisierten Sensornetzes unter Verwendung von LoRaWAN praktikabel, um Daten über den Fluss einer großen Anzahl von Menschen im öffentlichen Raum anhand der Signale ihrer mobilen Geräte zu sammeln?"**.
 
 ## Downloading the datasets
 The two datasets used can be found here:
@@ -38,7 +41,7 @@ After downloading the datasets, you can run the experiments using the ```elt_byt
 
 ## Examples
 
-The command used for the experiments of the paper is:
+The command used for the experiments in the thesis **"Ist die Nutzung eines zentralisierten Sensornetzes unter Verwendung von LoRaWAN praktikabel, um Daten über den Fluss einer großen Anzahl von Menschen im öffentlichen Raum anhand der Signale ihrer mobilen Geräte zu sammeln?"**:
 
     $ ./elt_byte_uniqueness.py pcap <path_to_PCAP_file>
 
